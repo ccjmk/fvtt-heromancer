@@ -23,24 +23,33 @@
     let [name, raceSelected, classSelected, dryRun] = await multi_input({ title: `Choose name, race and class`, data: basicInfo });
 
     const raceItem = races.find(r => r.data.name === raceSelected);
-    const classItem = classes.find(c => c.data.name === classSelected);
+//    console.log('Race item: ');
+//    console.log(raceItem);
 
-    console.log(raceItem)
-    console.log(classItem)
+    const classItem = classes.find(c => c.data.name === classSelected);
+//    console.log('Class item: ');
+//    console.log(classItem)
 
     // Select starting skills
     const skillsToPick = await classes[0].data.data.skills.number;
     const skillChoicesArray = await classItem.data.data.skills.choices;
     const skillChoices = skillChoicesArray.map(s => `${game.dnd5e.config.skills[s]} ;checkbox`).map(s => s.split(';'));
-    console.log(`${name}'s ${classItem.data.name} class available skills (${skillsToPick}): `);
-    console.log(skillChoices.map(s => s[0]));
+//    console.log(`${name}'s ${classItem.data.name} class available skills (${skillsToPick}): `);
+//    console.log(skillChoices.map(s => s[0]).join(','));
     const selectedSkills = await multi_input({ title: `Choose class skills (${skillsToPick})`, data : skillChoices });
 
 
     // Rolling Stats
-    
+    const abilities = Object.keys(game.dnd5e.config.abilities);
+    let actorAbilities = [];
+    for(let i=0; i<abilities.length; i++) {
+        const r = new Roll("4d6kh3").evaluate();
+        console.log(`Rolled ${abilities[i]} : ${r.total}`);
+        actorAbilities[i] = [abilities[i], r.total];
+    }
 
     let actorData = {};
+    actorAbilities.forEach((e,i) => (actorData[`abilities.${e[0]}.value`]) = e[1]);
     selectedSkills.forEach((e,i) => e ? (actorData[`skills.${skillChoicesArray[i]}.value`] = 1) : null);
     
     let actor;
@@ -68,6 +77,7 @@
         console.log(`Race: ${raceItem.data.name}`);
         console.log(`Class: ${classItem.data.name}`);
         console.log(`Skills: ${selectedSkills.map((s,i) => s ? skillChoicesArray[i] : false).filter(s => s)}`);
+        console.log(actorData);
     }
 
     
