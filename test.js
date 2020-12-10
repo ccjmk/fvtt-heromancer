@@ -13,17 +13,6 @@
     const alignments = ['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'];
     let actorData = {}; // used for proficiencies, languages, hp, etc..
 
-/*
-//   console.log('---------- RACES ---------------');
-// races.forEach((c,i) => console.log(`${i}: ${c.data.name}`));
-// console.log('---------- RACIAL FEATURES ---------------');
-// racialFeatures.forEach((c,i) => console.log(`${i}: ${c.data.name}`));
-//   console.log('---------- CLASSES ---------------');
-//   classes.forEach((c,i) => console.log(`${i}: ${c.data.name}`));
-//   console.log('---------- CLASS FEATURES ---------------');
-// classFeatures.forEach((c,i) => console.log(`${i}: ${c.data.name}`));
-*/
-
 
     // ASK BASIC INFO
     // -----------------------------------------------
@@ -32,12 +21,7 @@
     let [name, raceSelected, classSelected, background, alignment, dryRun] = await multi_input({ title: `Choose name, race and class`, data: basicInfo });
 
     const raceItem = races.find(r => r.data.name === raceSelected);
-//    console.log('Race item: ');
-//    console.log(raceItem);
-
     const classItem = classes.find(c => c.data.name === classSelected);
-//    console.log('Class item: ');
-//    console.log(classItem)
 
 
     // SELECT STARTING SKILLS
@@ -45,46 +29,49 @@
     const skillsToPick = await classes[0].data.data.skills.number;
     const skillChoicesArray = await classItem.data.data.skills.choices;
     const skillChoices = skillChoicesArray.map(s => `${game.dnd5e.config.skills[s]} ;checkbox`).map(s => s.split(';'));
-//    console.log(`${name}'s ${classItem.data.name} class available skills (${skillsToPick}): `);
-//    console.log(skillChoices.map(s => s[0]).join(','));
     const selectedSkills = await multi_input({ title: `Choose class skills (${skillsToPick})`, data : skillChoices });
     selectedSkills.forEach((e,i) => e ? (actorData[`skills.${skillChoicesArray[i]}.value`] = 1) : null);
 
 
     // ROLL ABILITIES
     // -----------------------------------------------
-    const abilities = Object.keys(game.dnd5e.config.abilities);
-    let actorAbilities = [];
-    for(let i=0; i<abilities.length; i++) {
-        const r = new Roll("4d6kh3").evaluate();
-        console.log(`Rolled ${abilities[i]} : ${r.total}`);
-        actorAbilities[i] = [abilities[i], r.total];
-    }
+    let actorAbilities = rollAbilities();
     actorAbilities.forEach((e,i) => (actorData[`abilities.${e[0]}.value`]) = e[1]);
-    
 
     
-    // SET STARTING HP
+    // SET STARTING HP, DETAILS AND TRAITS
     // -----------------------------------------------
-    let hitDice = classItem.data.data.hitDice;
+    const hitDice = classItem.data.data.hitDice;
     // remove the d from 'dXX' and add the constitution modifier
-    let conMod = getAbilityModifier(actorAbilities.filter(a => a[0] == 'con').map(a => a[1]));
-    actorData['attributes.hp.value'] = parseInt(hitDice.substring(1)) + conMod;
+    const conMod = getAbilityModifier(actorAbilities.filter(a => a[0] == 'con').map(a => a[1]));
+    const hp = parseInt(hitDice.substring(1)) + conMod;
+    actorData['attributes.hp.value'] = hp;
+    actorData['attributes.hp.max'] = hp;
 
+    //knowing the class we can get the saving throws, weapon, armor, language and tool proficiencies
+    const saves = getSavingThrows(classItem);
+    saves.forEach((e,i) => (actorData[`abilities.${e}.proficient`]) = [1]);
+    console.log(`Saving Throws per class: ${saves}`);
+
+    const armorProfs = getArmorProficiencies(classItem);
+    console.log(`Armor proficiencies per class: ${armorProfs}`);
+
+//all commented lines are for WIP testing, should fly later
     actorData['details.race'] = raceItem.data.name;
     actorData['details.background'] = background;
     actorData['details.alignment'] = alignment;
-    actorData['traits.armorProf'] = [['hvy'], 'cloth'];
-    //actorData['traits.ci'] = ; // condition immunity
-    //actorData['traits.di'] = ; // damage immunity
-    //actorData['traits.dr'] = ; // damage resistance
-    //actorData['traits.dv'] = ; // damage vulnerability
-    actorData['traits.languages'] = ['Druidic'];
-    actorData['traits.weaponProf'] = ['sim', 'longbow'];
+    // damage interactions
+    // actorData['traits.ci.value'] = ['blinded']; // condition immunity
+    // actorData['traits.di.value'] = ['bludgeoning']; // damage immunity
+    // actorData['traits.dr.value'] = ['piercing']; // damage resistance
+    // actorData['traits.dv.value'] = ['slashing']; // damage vulnerability
+    // proficiencies
+    // actorData['traits.languages.value'] = ['gnoll'];
+    // actorData['traits.languages.custom'] = 'boomer';
+    // actorData['traits.weaponProf.value'] = ['sim'];
+    actorData['traits.armorProf.value'] = armorProfs;
+    // actorData['traits.toolProf.value'] = ['thief', 'vehicle'];
 
-
-    console.log('actorData');
-    console.log(actorData);
 
     // CREATE ACTOR
     // -----------------------------------------------
@@ -119,8 +106,55 @@
     
 })();
 
+function rollAbilities() {
+    let actorAbilities = [];
+    const abilities = Object.keys(game.dnd5e.config.abilities);
+    for(let i=0; i<abilities.length; i++) {
+        const r = new Roll("4d6kh3").evaluate();
+        console.log(`Rolled ${abilities[i]} : ${r.total}`);
+        actorAbilities[i] = [abilities[i], r.total];
+    }
+    return actorAbilities;
+}
+
 function getAbilityModifier(value) {
     return Math.floor( (value - 10) / 2);
+}
+
+function getArmorProficiencies(classItem) {
+    /*
+    * Returns an object with two arrays, values and custom, taken from the description of the class item provided
+    * Expects the armor proficiencies to be after an 'Armor:' text near the top, separated by a comma and space
+    */
+
+    const classDesc = classItem.data.data.description.value;
+    const armorStr = classDesc.substring(classDesc.indexOf('Armor:'), classDesc.indexOf('<br>', classDesc.indexOf('Armor:')))
+    const armorProfs = armorStr.substring(armorStr.indexOf(';')+1, armorStr.length).split(',').map(a => a.toLowerCase().trim());
+
+    if(armorProfs.indexOf('all armor') > -1) { // if 'all armor' is found, replace it with... all armor types <3
+        armorProfs.splice(armorProfs.indexOf('all armor'), 1);
+        armorProfs.push('heavy armor');
+        armorProfs.push('medium armor');
+        armorProfs.push('light armor');
+    }
+    const armorKeys = Object.keys(game.dnd5e.config.armorProficiencies);
+    let armorProfKeys = armorProfs.map(s => armorKeys.find(key => game.dnd5e.config.armorProficiencies[key].toLowerCase() === s));
+
+    return armorProfKeys;
+}
+
+function getSavingThrows(classItem) {
+    /*
+    * Returns an array with both saving throws taken from the description of the class item provided
+    * Expects the saving throws to be after a 'Saving Throws:' text near the top, separated by a comma and space
+    */
+
+    const classDesc = classItem.data.data.description.value;
+    const savesStr = classDesc.substring(classDesc.indexOf('Saving Throws:'), classDesc.indexOf('<br>', classDesc.indexOf('Saving Throws:')))
+    const saves = [ savesStr.substring(savesStr.indexOf(';')+1, savesStr.indexOf(',')).trim() , savesStr.substring(savesStr.indexOf(',')+1).trim() ]
+
+    const abilityKeys = Object.keys(game.dnd5e.config.abilities);
+    return saves.map(s => abilityKeys.find(key => game.dnd5e.config.abilities[key] === s));
 }
 
 async function multi_input({title = ``, data = []} = {})
