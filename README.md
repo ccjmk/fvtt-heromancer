@@ -10,6 +10,7 @@ This are the features I expect to add as I build up the module and macros, and I
 * Add class starting items
 * Allow point-buy
 * Been able to choose subclass for 1st level subclasses, and add those features too
+* Picking 1st level spells from class spell list
 * UI for process, with button on Actors directory <-------- 1.0 release candidate
 * Adding a button on the character sheet for leveling up (updating only non-ASI class features - new features, more uses to resources, total HP, etc)
 * ASIs
