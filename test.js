@@ -1,11 +1,18 @@
 (async ()=> {
-    // Get compendiums
+
+
+    // GET COMPENDIUMS & INITIALIZE DATA
+    // -----------------------------------------------
     const raceNames = ['Dragonborn', 'Dwarf', 'Elf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfling', 'Human', 'Tiefling']; // race names are listed for filtering actual Races from Racial Features
     let _races = await game.packs.get("dnd5e.races").getContent();
     const races = _races.filter(r => raceNames.includes(r.data.name));
     const racialFeatures = _races.filter(r => !(raceNames.includes(r.data.name)));
     const classes = await game.packs.get("dnd5e.classes").getContent();
     const classFeatures = await game.packs.get("dnd5e.classfeatures").getContent();
+
+    const alignments = ['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'];
+    let actorData = {}; // used for proficiencies, languages, hp, etc..
+
 /*
 //   console.log('---------- RACES ---------------');
 // races.forEach((c,i) => console.log(`${i}: ${c.data.name}`));
@@ -17,10 +24,12 @@
 // classFeatures.forEach((c,i) => console.log(`${i}: ${c.data.name}`));
 */
 
-    // Ask basic info
+
+    // ASK BASIC INFO
+    // -----------------------------------------------
     const classNames = Array.from(classes.map(c => c.data.name));
-    const basicInfo = [[`What is your name? `, `text`], [`What is your race? `, `select`, raceNames], [`What is your class? `, `select`, classNames], [`Dry-run? `, `checkbox`]];
-    let [name, raceSelected, classSelected, dryRun] = await multi_input({ title: `Choose name, race and class`, data: basicInfo });
+    const basicInfo = [[`What is your name? `, `text`], [`What is your race? `, `select`, raceNames], [`What is your class? `, `select`, classNames], [`What is your background? `, `text`], [`What is your alignment? `, `select`, alignments], [`Dry-run? `, `checkbox`]];
+    let [name, raceSelected, classSelected, background, alignment, dryRun] = await multi_input({ title: `Choose name, race and class`, data: basicInfo });
 
     const raceItem = races.find(r => r.data.name === raceSelected);
 //    console.log('Race item: ');
@@ -30,16 +39,20 @@
 //    console.log('Class item: ');
 //    console.log(classItem)
 
-    // Select starting skills
+
+    // SELECT STARTING SKILLS
+    // -----------------------------------------------
     const skillsToPick = await classes[0].data.data.skills.number;
     const skillChoicesArray = await classItem.data.data.skills.choices;
     const skillChoices = skillChoicesArray.map(s => `${game.dnd5e.config.skills[s]} ;checkbox`).map(s => s.split(';'));
 //    console.log(`${name}'s ${classItem.data.name} class available skills (${skillsToPick}): `);
 //    console.log(skillChoices.map(s => s[0]).join(','));
     const selectedSkills = await multi_input({ title: `Choose class skills (${skillsToPick})`, data : skillChoices });
+    selectedSkills.forEach((e,i) => e ? (actorData[`skills.${skillChoicesArray[i]}.value`] = 1) : null);
 
 
-    // Rolling Stats
+    // ROLL ABILITIES
+    // -----------------------------------------------
     const abilities = Object.keys(game.dnd5e.config.abilities);
     let actorAbilities = [];
     for(let i=0; i<abilities.length; i++) {
@@ -47,11 +60,34 @@
         console.log(`Rolled ${abilities[i]} : ${r.total}`);
         actorAbilities[i] = [abilities[i], r.total];
     }
-
-    let actorData = {};
     actorAbilities.forEach((e,i) => (actorData[`abilities.${e[0]}.value`]) = e[1]);
-    selectedSkills.forEach((e,i) => e ? (actorData[`skills.${skillChoicesArray[i]}.value`] = 1) : null);
     
+
+    
+    // SET STARTING HP
+    // -----------------------------------------------
+    let hitDice = classItem.data.data.hitDice;
+    // remove the d from 'dXX' and add the constitution modifier
+    let conMod = getAbilityModifier(actorAbilities.filter(a => a[0] == 'con').map(a => a[1]));
+    actorData['attributes.hp.value'] = parseInt(hitDice.substring(1)) + conMod;
+
+    actorData['details.race'] = raceItem.data.name;
+    actorData['details.background'] = background;
+    actorData['details.alignment'] = alignment;
+    actorData['traits.armorProf'] = [['hvy'], 'cloth'];
+    //actorData['traits.ci'] = ; // condition immunity
+    //actorData['traits.di'] = ; // damage immunity
+    //actorData['traits.dr'] = ; // damage resistance
+    //actorData['traits.dv'] = ; // damage vulnerability
+    actorData['traits.languages'] = ['Druidic'];
+    actorData['traits.weaponProf'] = ['sim', 'longbow'];
+
+
+    console.log('actorData');
+    console.log(actorData);
+
+    // CREATE ACTOR
+    // -----------------------------------------------
     let actor;
     if(!dryRun) {
         // Create actor
@@ -82,6 +118,10 @@
 
     
 })();
+
+function getAbilityModifier(value) {
+    return Math.floor( (value - 10) / 2);
+}
 
 async function multi_input({title = ``, data = []} = {})
 {
