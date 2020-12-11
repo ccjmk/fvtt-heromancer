@@ -57,6 +57,10 @@
     console.log(`Basic armor proficiencies per class: ${armorProfs.value}`);
     console.log(`Custom armor proficiencies per class: ${armorProfs.custom}`);
 
+    const weaponProfs = getWeaponProficiencies(classItem);
+    console.log(`Basic weapon proficiencies per class: ${weaponProfs.value}`);
+    console.log(`Custom weapon proficiencies per class: ${weaponProfs.custom}`);
+
 //all commented lines are for WIP testing, should fly later
     actorData['details.race'] = raceItem.data.name;
     actorData['details.background'] = background;
@@ -69,7 +73,8 @@
     // proficiencies
     // actorData['traits.languages.value'] = ['gnoll'];
     // actorData['traits.languages.custom'] = 'boomer';
-    // actorData['traits.weaponProf.value'] = ['sim'];
+    actorData['traits.weaponProf.value'] = weaponProfs.value;
+    actorData['traits.weaponProf.custom'] = weaponProfs.custom.join(';');
     actorData['traits.armorProf.value'] = armorProfs.value;
     actorData['traits.armorProf.custom'] = armorProfs.custom.join(';');
     // actorData['traits.toolProf.value'] = ['thief', 'vehicle'];
@@ -119,6 +124,11 @@ function rollAbilities() {
     return actorAbilities;
 }
 
+const capitalize = (s) => {
+    if (typeof s !== 'string') return ''
+    return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 function getAbilityModifier(value) {
     return Math.floor( (value - 10) / 2);
 }
@@ -140,10 +150,12 @@ function getArmorProficiencies(classItem) {
 
     //if there's stuff between parenthesys, that goes into the customs
     let customProfs = [];
-    customProfs.push(armorStr.substring(
-        armorStr.lastIndexOf("(") , 
-        armorStr.lastIndexOf(")") + 1
-    ));
+    if(armorStr.lastIndexOf("(") > -1) {
+        customProfs.push(armorStr.substring(
+            armorStr.lastIndexOf("(") , 
+            armorStr.lastIndexOf(")") + 1
+        ));
+    }
     let armorProfs = armorStr.substring(armorStr.indexOf(';')+1, armorStr.lastIndexOf("(") > -1 ? armorStr.lastIndexOf("(") : armorStr.length).split(',').map(a => a.toLowerCase().trim());
 
     if(armorProfs.indexOf('all armor') > -1) { // if 'all armor' is found, replace it with... all armor types <3
@@ -154,15 +166,54 @@ function getArmorProficiencies(classItem) {
     }
     const armorKeys = Object.keys(game.dnd5e.config.armorProficiencies);
     let armorProfKeys = armorProfs.flatMap(s => {
+        if(s == 'none') return [];
         let p = armorKeys.find(key => game.dnd5e.config.armorProficiencies[key].toLowerCase() === s)
         if(!p) {
-            customProfs.push(s);
+            customProfs.push(capitalize(s));
             return [];
         }
         return [p];
     });
 
     return { value: armorProfKeys, custom: customProfs };
+}
+
+function getWeaponProficiencies(classItem) {
+    /*
+    * Returns an object with two arrays, values and custom, taken from the description of the class item provided
+    * Expects the weapon proficiencies to be after a 'Weapons:' text near the top, separated by a comma and space (space is trimmed later)
+    */
+
+    const classDesc = classItem.data.data.description.value;
+    const weaponStr = classDesc.substring(classDesc.indexOf('Weapons:'), classDesc.indexOf('<br>', classDesc.indexOf('Weapons:')));
+
+    //if there's stuff between parenthesys, that goes into the customs
+    let customProfs = [];
+    if(weaponStr.lastIndexOf("(") > -1) {
+        customProfs.push(weaponStr.substring(
+            weaponStr.lastIndexOf("(") , 
+            weaponStr.lastIndexOf(")") + 1
+        ));
+    }
+    let weaponProfs = weaponStr.substring(weaponStr.indexOf(';')+1, weaponStr.lastIndexOf("(") > -1 ? weaponStr.lastIndexOf("(") : weaponStr.length).split(',').map(a => a.toLowerCase().trim());
+
+    // if(armorProfs.indexOf('all armor') > -1) { // if 'all armor' is found, replace it with... all armor types <3
+    //     armorProfs.splice(armorProfs.indexOf('all armor'), 1);
+    //     armorProfs.push('heavy armor');
+    //     armorProfs.push('medium armor');
+    //     armorProfs.push('light armor');
+    // }
+    const weaponKeys = Object.keys(game.dnd5e.config.weaponProficiencies);
+    let weaponProfKeys = weaponProfs.flatMap(s => {
+        let p = weaponKeys.find(key => game.dnd5e.config.weaponProficiencies[key].toLowerCase() === s)
+        if(!p) {
+            customProfs.push(capitalize(s));
+            return [];
+        }
+        return [p];
+    });
+
+    return { value: weaponProfKeys, custom: customProfs };
 }
 
 function getSavingThrows(classItem) {
