@@ -28,7 +28,6 @@
     // -----------------------------------------------
     const skillsToPick = await classes[0].data.data.skills.number;
     const skillChoicesArray = await getClassSkills(classItem);
-console.log(skillChoicesArray)
     const skillChoices = skillChoicesArray.map(s => `${game.dnd5e.config.skills[s]} ;checkbox`).map(s => s.split(';'));
     const selectedSkills = await multi_input({ title: `Choose class skills (${skillsToPick})`, data : skillChoices });
     selectedSkills.forEach((e,i) => e ? (actorData[`skills.${skillChoicesArray[i]}.value`] = 1) : null);
@@ -72,7 +71,7 @@ console.log(skillChoicesArray)
     // actorData['traits.languages.custom'] = 'boomer';
     // actorData['traits.weaponProf.value'] = ['sim'];
     actorData['traits.armorProf.value'] = armorProfs.value;
-    actorData['traits.armorProf.custom'] = armorProfs.custom.join(',');
+    actorData['traits.armorProf.custom'] = armorProfs.custom.join(';');
     // actorData['traits.toolProf.value'] = ['thief', 'vehicle'];
 
 
@@ -145,7 +144,7 @@ function getArmorProficiencies(classItem) {
         armorStr.lastIndexOf("(") , 
         armorStr.lastIndexOf(")") + 1
     ));
-    const armorProfs = armorStr.substring(armorStr.indexOf(';')+1, armorStr.lastIndexOf("(") > -1 ? armorStr.lastIndexOf("(") : armorStr.length).split(',').map(a => a.toLowerCase().trim());
+    let armorProfs = armorStr.substring(armorStr.indexOf(';')+1, armorStr.lastIndexOf("(") > -1 ? armorStr.lastIndexOf("(") : armorStr.length).split(',').map(a => a.toLowerCase().trim());
 
     if(armorProfs.indexOf('all armor') > -1) { // if 'all armor' is found, replace it with... all armor types <3
         armorProfs.splice(armorProfs.indexOf('all armor'), 1);
@@ -154,10 +153,13 @@ function getArmorProficiencies(classItem) {
         armorProfs.push('light armor');
     }
     const armorKeys = Object.keys(game.dnd5e.config.armorProficiencies);
-    let armorProfKeys = armorProfs.map(s => {
+    let armorProfKeys = armorProfs.flatMap(s => {
         let p = armorKeys.find(key => game.dnd5e.config.armorProficiencies[key].toLowerCase() === s)
-        if(!p) customProfs.push(s);
-        return p;
+        if(!p) {
+            customProfs.push(s);
+            return [];
+        }
+        return [p];
     });
 
     return { value: armorProfKeys, custom: customProfs };
