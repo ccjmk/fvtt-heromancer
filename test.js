@@ -27,7 +27,8 @@
     // SELECT STARTING SKILLS
     // -----------------------------------------------
     const skillsToPick = await classes[0].data.data.skills.number;
-    const skillChoicesArray = await classItem.data.data.skills.choices;
+    const skillChoicesArray = await getClassSkills(classItem);
+console.log(skillChoicesArray)
     const skillChoices = skillChoicesArray.map(s => `${game.dnd5e.config.skills[s]} ;checkbox`).map(s => s.split(';'));
     const selectedSkills = await multi_input({ title: `Choose class skills (${skillsToPick})`, data : skillChoices });
     selectedSkills.forEach((e,i) => e ? (actorData[`skills.${skillChoicesArray[i]}.value`] = 1) : null);
@@ -54,7 +55,8 @@
     console.log(`Saving Throws per class: ${saves}`);
 
     const armorProfs = getArmorProficiencies(classItem);
-    console.log(`Armor proficiencies per class: ${armorProfs}`);
+    console.log(`Basic armor proficiencies per class: ${armorProfs.value}`);
+    console.log(`Custom armor proficiencies per class: ${armorProfs.custom}`);
 
 //all commented lines are for WIP testing, should fly later
     actorData['details.race'] = raceItem.data.name;
@@ -69,7 +71,8 @@
     // actorData['traits.languages.value'] = ['gnoll'];
     // actorData['traits.languages.custom'] = 'boomer';
     // actorData['traits.weaponProf.value'] = ['sim'];
-    actorData['traits.armorProf.value'] = armorProfs;
+    actorData['traits.armorProf.value'] = armorProfs.value;
+    actorData['traits.armorProf.custom'] = armorProfs.custom.join(',');
     // actorData['traits.toolProf.value'] = ['thief', 'vehicle'];
 
 
@@ -121,6 +124,12 @@ function getAbilityModifier(value) {
     return Math.floor( (value - 10) / 2);
 }
 
+async function getClassSkills(classItem) {
+    // workaround for Druid that is currently broken
+    if(classItem.data.name.toLowerCase() == 'druid') return ['arc', 'ani', 'ins', 'med', 'nat', 'prc', 'rel', 'sur'];
+    return await classItem.data.data.skills.choices;
+}
+
 function getArmorProficiencies(classItem) {
     /*
     * Returns an object with two arrays, values and custom, taken from the description of the class item provided
@@ -128,8 +137,15 @@ function getArmorProficiencies(classItem) {
     */
 
     const classDesc = classItem.data.data.description.value;
-    const armorStr = classDesc.substring(classDesc.indexOf('Armor:'), classDesc.indexOf('<br>', classDesc.indexOf('Armor:')))
-    const armorProfs = armorStr.substring(armorStr.indexOf(';')+1, armorStr.length).split(',').map(a => a.toLowerCase().trim());
+    const armorStr = classDesc.substring(classDesc.indexOf('Armor:'), classDesc.indexOf('<br>', classDesc.indexOf('Armor:')));
+
+    //if there's stuff between parenthesys, that goes into the customs
+    let customProfs = [];
+    customProfs.push(armorStr.substring(
+        armorStr.lastIndexOf("(") , 
+        armorStr.lastIndexOf(")") + 1
+    ));
+    const armorProfs = armorStr.substring(armorStr.indexOf(';')+1, armorStr.lastIndexOf("(") > -1 ? armorStr.lastIndexOf("(") : armorStr.length).split(',').map(a => a.toLowerCase().trim());
 
     if(armorProfs.indexOf('all armor') > -1) { // if 'all armor' is found, replace it with... all armor types <3
         armorProfs.splice(armorProfs.indexOf('all armor'), 1);
@@ -138,9 +154,13 @@ function getArmorProficiencies(classItem) {
         armorProfs.push('light armor');
     }
     const armorKeys = Object.keys(game.dnd5e.config.armorProficiencies);
-    let armorProfKeys = armorProfs.map(s => armorKeys.find(key => game.dnd5e.config.armorProficiencies[key].toLowerCase() === s));
+    let armorProfKeys = armorProfs.map(s => {
+        let p = armorKeys.find(key => game.dnd5e.config.armorProficiencies[key].toLowerCase() === s)
+        if(!p) customProfs.push(s);
+        return p;
+    });
 
-    return armorProfKeys;
+    return { value: armorProfKeys, custom: customProfs };
 }
 
 function getSavingThrows(classItem) {
