@@ -197,12 +197,6 @@ function getWeaponProficiencies(classItem) {
     }
     let weaponProfs = weaponStr.substring(weaponStr.indexOf(';')+1, weaponStr.lastIndexOf("(") > -1 ? weaponStr.lastIndexOf("(") : weaponStr.length).split(',').map(a => a.toLowerCase().trim());
 
-    // if(armorProfs.indexOf('all armor') > -1) { // if 'all armor' is found, replace it with... all armor types <3
-    //     armorProfs.splice(armorProfs.indexOf('all armor'), 1);
-    //     armorProfs.push('heavy armor');
-    //     armorProfs.push('medium armor');
-    //     armorProfs.push('light armor');
-    // }
     const weaponKeys = Object.keys(game.dnd5e.config.weaponProficiencies);
     let weaponProfKeys = weaponProfs.flatMap(s => {
         let p = weaponKeys.find(key => game.dnd5e.config.weaponProficiencies[key].toLowerCase() === s)
@@ -214,6 +208,38 @@ function getWeaponProficiencies(classItem) {
     });
 
     return { value: weaponProfKeys, custom: customProfs };
+}
+
+function getToolProficiencies(classItem) {
+    /*
+    * Returns an object with two arrays, values and custom, taken from the description of the class item provided
+    * Expects the tool proficiencies to be after a 'Tools:' text near the top, separated by a comma and space (space is trimmed later)
+    */
+
+    const classDesc = classItem.data.data.description.value;
+    const toolStr = classDesc.substring(classDesc.indexOf('Tools:'), classDesc.indexOf('<br>', classDesc.indexOf('Tools:')));
+
+    //if there's stuff between parenthesys, that goes into the customs
+    let customProfs = [];
+    if(toolStr.lastIndexOf("(") > -1) {
+        customProfs.push(toolStr.substring(
+            toolStr.lastIndexOf("(") , 
+            toolStr.lastIndexOf(")") + 1
+        ));
+    }
+    let toolProfs = toolStr.substring(toolStr.indexOf(';')+1, toolStr.lastIndexOf("(") > -1 ? toolStr.lastIndexOf("(") : toolStr.length).split(',').map(a => a.toLowerCase().trim());
+
+    const toolKeys = Object.keys(game.dnd5e.config.toolProficiencies);
+    let toolProfKeys = toolProfs.flatMap(s => {
+        let p = toolKeys.find(key => game.dnd5e.config.toolProficiencies[key].toLowerCase() === s)
+        if(!p) {
+            customProfs.push(capitalize(s));
+            return [];
+        }
+        return [p];
+    });
+
+    return { value: toolProfKeys, custom: customProfs };
 }
 
 function getSavingThrows(classItem) {
