@@ -1,0 +1,25 @@
+{
+    "name": "heromancer",
+    "title": "Heromancer - PC creation/level up assistant for DnD 5e",
+    "authors": [
+        {
+            "name": "ccjmk"
+        }
+    ],
+    "version": "0.0.1",
+    "type": "module",
+    "url": "https://github.com/ccjmk/fvtt-heromancer",
+    "compatibleCoreVersion": "0.7.7",
+    "minimumCoreVersion": "0.7.7",
+    "description": "Tool intended to resemble Roll20's Charactermancer for DnD 5e on FoundryVTT",
+    "esmodules": [
+        "scripts/index.js"
+    ],
+    "dependencies": [
+        {
+            "name": "dnd5e",
+            "type": "system"
+        }
+    ],
+    "manifest": "https://github.com/ccjmk/fvtt-heromancer/blob/main/module.json"
+}
