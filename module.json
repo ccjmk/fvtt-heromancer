@@ -21,5 +21,6 @@
             "type": "system"
         }
     ],
-    "manifest": "https://github.com/ccjmk/fvtt-heromancer/blob/main/module.json"
+    "manifest": "https://raw.githubusercontent.com/ccjmk/fvtt-heromancer/main/module.json",
+    "download": "https://github.com/ccjmk/fvtt-heromancer/archive/v0.0.1-alpha.zip"
 }
