@@ -27,7 +27,7 @@
     // SELECT STARTING SKILLS
     // -----------------------------------------------
     const skillsToPick = await classes[0].data.data.skills.number;
-    const skillChoicesArray = await getClassSkills(classItem);
+    const skillChoicesArray = await getClassSkills(raceItem, classItem);
     const skillChoices = skillChoicesArray.map(s => `${game.dnd5e.config.skills[s]} ;checkbox`).map(s => s.split(';'));
     const selectedSkills = await multi_input({ title: `Choose class skills (${skillsToPick})`, data : skillChoices });
     selectedSkills.forEach((e,i) => e ? (actorData[`skills.${skillChoicesArray[i]}.value`] = 1) : null);
@@ -53,37 +53,43 @@
     saves.forEach((e,i) => (actorData[`abilities.${e}.proficient`]) = [1]);
     console.log(`Saving Throws per class: ${saves}`);
 
-    const armorProfs = getArmorProficiencies(classItem);
-    console.log(`Basic armor proficiencies per class: ${armorProfs.value}`);
-    console.log(`Custom armor proficiencies per class: ${armorProfs.custom}`);
+    const armorProfs = getArmorProficiencies(raceItem, classItem);
+    console.log(`Basic armor proficiencies per race/class: ${armorProfs.value}`);
+    console.log(`Custom armor proficiencies per race/class: ${armorProfs.custom}`);
 
-    const weaponProfs = getWeaponProficiencies(classItem);
-    console.log(`Basic weapon proficiencies per class: ${weaponProfs.value}`);
-    console.log(`Custom weapon proficiencies per class: ${weaponProfs.custom}`);
+    const weaponProfs = getWeaponProficiencies(raceItem, classItem);
+    console.log(`Basic weapon proficiencies per race/class: ${weaponProfs.value}`);
+    console.log(`Custom weapon proficiencies per race/class: ${weaponProfs.custom}`);
 
-    const toolProfs = getToolProficiencies(classItem);
-    console.log(`Basic tool proficiencies per class: ${toolProfs.value}`);
-    console.log(`Custom custom proficiencies per class: ${toolProfs.custom}`);
+    const toolProfs = getToolProficiencies(raceItem, classItem);
+    console.log(`Basic tool proficiencies per race/class: ${toolProfs.value}`);
+    console.log(`Custom tool proficiencies per race/class: ${toolProfs.custom}`);
+
+    const langProfs = getLanguageProficiencies(raceItem, classItem);
+    console.log(`Basic language proficiencies per race/class: ${langProfs.value}`);
+    console.log(`Custom language proficiencies per race/class: ${langProfs.custom}`);
     
 
-//all commented lines are for WIP testing, should fly later
+//all commented lines are for WIP testing, should be replaced later with working ones
     actorData['details.race'] = raceItem.data.name;
     actorData['details.background'] = background;
     actorData['details.alignment'] = alignment;
+
     // damage interactions
     // actorData['traits.ci.value'] = ['blinded']; // condition immunity
     // actorData['traits.di.value'] = ['bludgeoning']; // damage immunity
     // actorData['traits.dr.value'] = ['piercing']; // damage resistance
     // actorData['traits.dv.value'] = ['slashing']; // damage vulnerability
+
     // proficiencies
-    // actorData['traits.languages.value'] = ['gnoll'];
-    // actorData['traits.languages.custom'] = 'boomer';
+    actorData['traits.armorProf.value'] = armorProfs.value;
+    actorData['traits.armorProf.custom'] = armorProfs.custom.join(';');  
     actorData['traits.weaponProf.value'] = weaponProfs.value;
     actorData['traits.weaponProf.custom'] = weaponProfs.custom.join(';');
-    actorData['traits.armorProf.value'] = armorProfs.value;
-    actorData['traits.armorProf.custom'] = armorProfs.custom.join(';');
     actorData['traits.toolProf.value'] = toolProfs.value;
     actorData['traits.toolProf.custom'] = toolProfs.custom.join(';');
+    actorData['traits.languages.value'] = langProfs.value;
+    actorData['traits.languages.custom'] = langProfs.custom.join(';');
 
 
 
@@ -137,13 +143,39 @@ function getAbilityModifier(value) {
     return Math.floor( (value - 10) / 2);
 }
 
-async function getClassSkills(classItem) {
+async function getClassSkills(raceItem, classItem) {
     // workaround for Druid that is currently broken
     if(classItem.data.name.toLowerCase() == 'druid') return ['arc', 'ani', 'ins', 'med', 'nat', 'prc', 'rel', 'sur'];
     return await classItem.data.data.skills.choices;
 }
 
-function getArmorProficiencies(classItem) {
+function getLanguageProficiencies(raceItem, classItem) {
+    /*
+    * Returns an object with two arrays, values and custom, taken from the description of the race and class items provided
+    * Expects the language proficiencies to be after an 'Languages:' text at the bottom, separated by a comma
+    */
+
+    //getting the part where languages are mentioned
+    const raceDesc = raceItem.data.data.description.value;
+    const languageStr = raceDesc.substring(raceDesc.indexOf('Languages'));
+
+    //for each language key on the system, see if it pops on the string
+    const languages = game.dnd5e.config.languages;
+    let languageProfs = [];
+    let customProfs = languageStr.includes('extra') ? ['one extra'] : [];
+
+    const languageKeys = Object.keys(languages); // languages keys have the same text as values, except key 'cant' for Thieves' Cant
+    languageKeys.forEach((l,i) => {
+        if(languageStr.includes(languages[l])) {
+            console.log(`Found language ${languages[l]}`);
+            languageProfs.length == 0 ? languageProfs = [l] : languageProfs.push(l);
+        }
+    });
+
+    return { value: languageProfs, custom: customProfs };
+}
+
+function getArmorProficiencies(raceItem, classItem) {
     /*
     * Returns an object with two arrays, values and custom, taken from the description of the class item provided
     * Expects the armor proficiencies to be after an 'Armor:' text near the top, separated by a comma and space
@@ -182,7 +214,7 @@ function getArmorProficiencies(classItem) {
     return { value: armorProfKeys, custom: customProfs };
 }
 
-function getWeaponProficiencies(classItem) {
+function getWeaponProficiencies(raceItem, classItem) {
     /*
     * Returns an object with two arrays, values and custom, taken from the description of the class item provided
     * Expects the weapon proficiencies to be after a 'Weapons:' text near the top, separated by a comma and space (space is trimmed later)
@@ -215,7 +247,7 @@ function getWeaponProficiencies(classItem) {
     return { value: weaponProfKeys, custom: customProfs };
 }
 
-function getToolProficiencies(classItem) {
+function getToolProficiencies(raceItem, classItem) {
     /*
     * Returns an object with two arrays, values and custom, taken from the description of the class item provided
     * Expects the tool proficiencies to be after a 'Tools:' text near the top, separated by a comma and space (space is trimmed later)
@@ -241,7 +273,6 @@ function getToolProficiencies(classItem) {
 
     const toolKeys = Object.keys(game.dnd5e.config.toolProficiencies);
     let toolProfKeys = toolProfs.flatMap(s => {
-        console.log(`s: ${s}`);
         if(s.toLowerCase() == 'none') return [];
         let p = toolKeys.find(key => game.dnd5e.config.toolProficiencies[key].toLowerCase() === s)
         if(!p) {
@@ -250,8 +281,6 @@ function getToolProficiencies(classItem) {
         }
         return [p];
     });
-    console.log(toolProfKeys)
-    console.log(customProfs)
 
     return { value: toolProfKeys, custom: customProfs };
 }
