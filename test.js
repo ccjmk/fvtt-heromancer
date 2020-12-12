@@ -61,6 +61,11 @@
     console.log(`Basic weapon proficiencies per class: ${weaponProfs.value}`);
     console.log(`Custom weapon proficiencies per class: ${weaponProfs.custom}`);
 
+    const toolProfs = getToolProficiencies(classItem);
+    console.log(`Basic tool proficiencies per class: ${toolProfs.value}`);
+    console.log(`Custom custom proficiencies per class: ${toolProfs.custom}`);
+    
+
 //all commented lines are for WIP testing, should fly later
     actorData['details.race'] = raceItem.data.name;
     actorData['details.background'] = background;
@@ -77,7 +82,9 @@
     actorData['traits.weaponProf.custom'] = weaponProfs.custom.join(';');
     actorData['traits.armorProf.value'] = armorProfs.value;
     actorData['traits.armorProf.custom'] = armorProfs.custom.join(';');
-    // actorData['traits.toolProf.value'] = ['thief', 'vehicle'];
+    actorData['traits.toolProf.value'] = toolProfs.value;
+    actorData['traits.toolProf.custom'] = toolProfs.custom.join(';');
+
 
 
     // CREATE ACTOR
@@ -85,10 +92,7 @@
     let actor;
     if(!dryRun) {
         // Create actor
-        console.log(`Creating..
-    Name: ${name}
-    Race: ${raceSelected}
-    Class: ${classSelected}`);
+        console.log(`Creating ${name} (${raceSelected} ${classSelected})`);
         
         actor = await Actor.create({
         name: name,
@@ -166,7 +170,7 @@ function getArmorProficiencies(classItem) {
     }
     const armorKeys = Object.keys(game.dnd5e.config.armorProficiencies);
     let armorProfKeys = armorProfs.flatMap(s => {
-        if(s == 'none') return [];
+        if(s.toLowerCase() == 'none') return [];
         let p = armorKeys.find(key => game.dnd5e.config.armorProficiencies[key].toLowerCase() === s)
         if(!p) {
             customProfs.push(capitalize(s));
@@ -199,6 +203,7 @@ function getWeaponProficiencies(classItem) {
 
     const weaponKeys = Object.keys(game.dnd5e.config.weaponProficiencies);
     let weaponProfKeys = weaponProfs.flatMap(s => {
+        if(s.toLowerCase() == 'none') return [];
         let p = weaponKeys.find(key => game.dnd5e.config.weaponProficiencies[key].toLowerCase() === s)
         if(!p) {
             customProfs.push(capitalize(s));
@@ -215,6 +220,10 @@ function getToolProficiencies(classItem) {
     * Returns an object with two arrays, values and custom, taken from the description of the class item provided
     * Expects the tool proficiencies to be after a 'Tools:' text near the top, separated by a comma and space (space is trimmed later)
     */
+   //Tools: Thieves’ tools
+   //Tools: Herbalism kit
+   //Tools: Choose one type of artisan’s tools or one musical instrument
+   //Tools: Three musical instruments of your choice
 
     const classDesc = classItem.data.data.description.value;
     const toolStr = classDesc.substring(classDesc.indexOf('Tools:'), classDesc.indexOf('<br>', classDesc.indexOf('Tools:')));
@@ -227,10 +236,13 @@ function getToolProficiencies(classItem) {
             toolStr.lastIndexOf(")") + 1
         ));
     }
-    let toolProfs = toolStr.substring(toolStr.indexOf(';')+1, toolStr.lastIndexOf("(") > -1 ? toolStr.lastIndexOf("(") : toolStr.length).split(',').map(a => a.toLowerCase().trim());
+    // accent is replaced for literal Thieves' tools from Rogue
+    let toolProfs = toolStr.substring(toolStr.indexOf(';')+1, toolStr.lastIndexOf("(") > -1 ? toolStr.lastIndexOf("(") : toolStr.length).split(',').map(a => a.toLowerCase().trim().replace("’", "'"));
 
     const toolKeys = Object.keys(game.dnd5e.config.toolProficiencies);
     let toolProfKeys = toolProfs.flatMap(s => {
+        console.log(`s: ${s}`);
+        if(s.toLowerCase() == 'none') return [];
         let p = toolKeys.find(key => game.dnd5e.config.toolProficiencies[key].toLowerCase() === s)
         if(!p) {
             customProfs.push(capitalize(s));
@@ -238,6 +250,8 @@ function getToolProficiencies(classItem) {
         }
         return [p];
     });
+    console.log(toolProfKeys)
+    console.log(customProfs)
 
     return { value: toolProfKeys, custom: customProfs };
 }

@@ -20,6 +20,7 @@ This are the features I expect to add as I build up the module and macros, and I
 
 ## Cool Stuff for later
 
+* Actual dynamic selection of artisan tools and musical instruments
 * Tokenizer integration, so you can set avatar and token while creating character
 * Custom races (probably a setting where you can specify compendiums other than 5e SRD to load custom races/race feature items, following SRD templates)
 * Custom subclasses (probably a setting like Custom Races)
