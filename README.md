@@ -5,6 +5,7 @@ Heromancer - DnD 5e character creation/level up assistant for Foundry VTT
 This are the features I expect to add as I build up the module and macros, and I learn more about the API. These should be followed in order probably.
 
 * Been able to create a 1st level character with all-rolled stats and SRD races and classes (only SRD race and class features, nothing else)
+* Adding subrace
 * Adding vision to token based on race
 * Allow for moving stats around on creation, and use either 4d6kh3 rolls or standard array
 * Add class starting items

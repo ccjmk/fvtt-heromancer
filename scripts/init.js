@@ -18,7 +18,7 @@
 
     const dragonborn = await makeRaceConfig(_compendiumRaces, 'Dragonborn');
     dragonborn.abilities.str.bonus = 2;
-    dragonborn.abilities.str.bonus = 1;
+    dragonborn.abilities.cha.bonus = 1;
     dragonborn.prof.languages.fixed = ['common', 'draconic'];
     races.push(dragonborn);
 
@@ -29,7 +29,7 @@
     dwarf.dmg.resistances.fixed = ['poison'];
     dwarf.prof.weapons.from = ['battleaxe', 'handaxe', 'light hammer', 'warhammer'];
     // dwarf gets prof in any of three artisan tools, marking those as custom as artisan tools is too general
-    dwarf.prof.tools.from = { number : 1, options : ["smith's tools", "brewer's supplies", "mason's tools"] };
+    dwarf.prof.tools.from = { number: 1, options: ["smith's tools", "brewer's supplies", "mason's tools"] };
     races.push(dwarf);
 
     const hill_dwarf = await makeRaceConfig(_compendiumRaces, 'Hill Dwarf');
@@ -44,7 +44,6 @@
     elf.prof.skills.fixed = ['prc'];
     elf.prof.languages.fixed = ['elvish', 'common'];
     elf.cond.advantages.fixed = ['charmed'];
-    elf.cond.immunities.fixed = ['unconscious'];
     races.push(elf);
 
     const high_elf = await makeRaceConfig(_compendiumRaces, 'High Elf');
@@ -73,7 +72,6 @@
     helf.abilities.any.bonus = [1, 1];
     helf.senses.darkvision = 60;
     helf.cond.advantages.fixed = ['charmed'];
-    helf.cond.immunities.fixed = ['unconscious'];
     helf.prof.skills.any = 2;
     helf.prof.languages.fixed = ['elvish', 'common'];
     helf.prof.languages.any = 1;
@@ -129,100 +127,100 @@
     const classes = [];
 
     const barbarian = await makeClassConfig(compClasses, 'Barbarian');
-    barbarian.hitDie = 'd12';
+    barbarian.attributes.hitDie = 'd12';
     barbarian.prof.saves = ['str', 'con'];
-    barbarian.prof.armors.fixed = ["lgt", "med", "shl"];
+    barbarian.prof.armor.fixed = ["lgt", "med", "shl"];
     barbarian.prof.weapons.fixed = ['sim', 'mar'];
-    barbarian.prof.skills.from = { number : 2, options : ["ani", "ath", "itm", "nat", "prc", "sur"] };
+    barbarian.prof.skills.from = { number: 2, options: ["ani", "ath", "itm", "nat", "prc", "sur"] };
     classes.push(barbarian);
 
     const bard = await makeClassConfig(compClasses, 'Bard');
-    bard.hitDie = 'd8';
+    bard.attributes.hitDie = 'd8';
     bard.prof.saves = ['dex', 'cha'];
-    bard.prof.armors.fixed = ['lgt'];
+    bard.prof.armor.fixed = ['lgt'];
     bard.prof.weapons.fixed = ['sim', 'hand crossbows', 'longswords', 'rapiers', 'shortswords'];
     bard.prof.skills.any = 3;
     bard.prof.tools.fixed = ['instrument 1', 'instrument 2', 'instrument 3'];
     classes.push(bard);
 
     const cleric = await makeClassConfig(compClasses, 'Cleric');
-    cleric.hitDie = 'd8';
+    cleric.attributes.hitDie = 'd8';
     cleric.prof.saves = ['wis', 'cha'];
-    cleric.prof.armors.fixed = ["lgt", "med", "shl"];
+    cleric.prof.armor.fixed = ["lgt", "med", "shl"];
     cleric.prof.weapons.fixed = ['sim'];
-cleric.prof.skills.from = { number : 2, options : ["his", "ins", "med", "per", "rel"] };
+    cleric.prof.skills.from = { number: 2, options: ["his", "ins", "med", "per", "rel"] };
     classes.push(cleric);
 
     const druid = await makeClassConfig(compClasses, 'Druid');
-    druid.hitDie = 'd8';
+    druid.attributes.hitDie = 'd8';
     druid.prof.saves = ['int', 'wis'];
-    druid.prof.armors.fixed = ["lgt", "med", "shl", '(druids will not wear armor or use shields made of metal)'];
+    druid.prof.armor.fixed = ["lgt", "med", "shl", '(druids will not wear armor or use shields made of metal)'];
     druid.prof.weapons.fixed = ['clubs', 'daggers', 'darts', 'javelins', 'maces', 'quarterstaffs', 'scimitars', 'sickles', 'slings', 'spears'];
-druid.prof.skills.from = { number : 2, options : ["arc", "ani", "ins", "med", "nat", "prc", "rel", "sur"] };
+    druid.prof.skills.from = { number: 2, options: ["arc", "ani", "ins", "med", "nat", "prc", "rel", "sur"] };
     druid.prof.tools.fixed = ['herbalism kit'];
     classes.push(druid);
 
     const fighter = await makeClassConfig(compClasses, 'Fighter');
-    fighter.hitDie = 'd10';
+    fighter.attributes.hitDie = 'd10';
     fighter.prof.saves = ['str', 'con'];
-    fighter.prof.armors.fixed = ['hvy', "lgt", "med", "shl"];
+    fighter.prof.armor.fixed = ['hvy', "lgt", "med", "shl"];
     fighter.prof.weapons.fixed = ['sim', 'mar'];
-fighter.prof.skills.from = { number : 2, options : ['acr', "ani", "ath", "his", "ins", "itm", "prc", 'sur'] };
+    fighter.prof.skills.from = { number: 2, options: ['acr', "ani", "ath", "his", "ins", "itm", "prc", 'sur'] };
     classes.push(fighter);
 
     const monk = await makeClassConfig(compClasses, 'Monk');
-    monk.hitDie = 'd8';
+    monk.attributes.hitDie = 'd8';
     monk.prof.saves = ['str', 'dex'];
     monk.prof.weapons.fixed = ['sim', 'shortswords'];
-monk.prof.skills.from = { number : 2, options : ["acr", "ath", "his", "ins", "rel", "ste"] };
-monk.prof.tools.from = { number : 1, options : ['any artisan tool', 'any instrument'] };
+    monk.prof.skills.from = { number: 2, options: ["acr", "ath", "his", "ins", "rel", "ste"] };
+    monk.prof.tools.from = { number: 1, options: ['any artisan tool', 'any instrument'] };
     classes.push(monk);
 
     const paladin = await makeClassConfig(compClasses, 'Paladin');
-    paladin.hitDie = 'd10';
+    paladin.attributes.hitDie = 'd10';
     paladin.prof.saves = ['wis', 'cha'];
-    paladin.prof.armors.fixed = ['hvy', "lgt", "med", "shl"];
+    paladin.prof.armor.fixed = ['hvy', "lgt", "med", "shl"];
     paladin.prof.weapons.fixed = ['sim', 'mar'];
-paladin.prof.skills.from = { number : 2, options : ["ath", "ins", "itm", "med", "prc", "rel"] };
+    paladin.prof.skills.from = { number: 2, options: ["ath", "ins", "itm", "med", "prc", "rel"] };
     classes.push(paladin);
 
     const ranger = await makeClassConfig(compClasses, 'Ranger');
-    ranger.hitDie = 'd10';
+    ranger.attributes.hitDie = 'd10';
     ranger.prof.saves = ['str', 'dex'];
-    ranger.prof.armors.fixed = ["lgt", "med", "shl"];
+    ranger.prof.armor.fixed = ["lgt", "med", "shl"];
     ranger.prof.weapons.fixed = ['sim', 'mar'];
-ranger.prof.skills.from = { number : 3, options : ["ani", "ath", "ins", "inv", "nat", "prc", "ste", "sur"] };
+    ranger.prof.skills.from = { number: 3, options: ["ani", "ath", "ins", "inv", "nat", "prc", "ste", "sur"] };
     classes.push(ranger);
 
     const rogue = await makeClassConfig(compClasses, 'Rogue');
-    rogue.hitDie = 'd8';
+    rogue.attributes.hitDie = 'd8';
     rogue.prof.saves = ['dex', 'int'];
-    rogue.prof.armors.fixed = ["lgt", "med", "shl"];
+    rogue.prof.armor.fixed = ["lgt", "med", "shl"];
     rogue.prof.weapons.fixed = ['sim', 'hand crossbows', 'longswords', 'rapiers', 'shortswords'];
-rogue.prof.skills.from = { number : 4, options : ["acr", "ath", "dec", "ins", "itm", "inv", "ath", "itm", "nat", "prc", "sur"] };
-    rogue.prof.tools.fixed = ["Thieves' tools"];
+    rogue.prof.skills.from = { number: 4, options: ["acr", "ath", "dec", "ins", "itm", "inv", "ath", "itm", "nat", "prc", "sur"] };
+    rogue.prof.tools.fixed = ['thief'];
     classes.push(rogue);
 
     const sorcerer = await makeClassConfig(compClasses, 'Sorcerer');
-    sorcerer.hitDie = 'd6';
+    sorcerer.attributes.hitDie = 'd6';
     sorcerer.prof.saves = ['con', 'cha'];
     sorcerer.prof.weapons.fixed = ['daggers', 'darts', 'slings', 'quarterstaffs', 'light crossbows'];
-sorcerer.prof.skills.from = { number : 2, options : ["arc", "dec", "ins", "itm", "per", "rel"] };
+    sorcerer.prof.skills.from = { number: 2, options: ["arc", "dec", "ins", "itm", "per", "rel"] };
     classes.push(sorcerer);
 
     const warlock = await makeClassConfig(compClasses, 'Warlock');
-    warlock.hitDie = 'd8';
+    warlock.attributes.hitDie = 'd8';
     warlock.prof.saves = ['wis', 'cha'];
-    warlock.prof.armors.fixed = ["lgt"];
+    warlock.prof.armor.fixed = ["lgt"];
     warlock.prof.weapons.fixed = ['sim'];
-warlock.prof.skills.from = { number : 2, options : ["ani", "ath", "itm", "nat", "prc", "sur"] };
+    warlock.prof.skills.from = { number: 2, options: ["ani", "ath", "itm", "nat", "prc", "sur"] };
     classes.push(warlock);
 
     const wizard = await makeClassConfig(compClasses, 'Wizard');
-    wizard.hitDie = 'd6';
+    wizard.attributes.hitDie = 'd6';
     wizard.prof.saves = ['int', 'wis'];
     wizard.prof.weapons.fixed = ['daggers', 'darts', 'slings', 'quarterstaffs', 'light crossbows'];
-wizard.prof.skills.from = { number : 2, options : ["acr", "his", "ins", "inv", "med", "rel"] };
+    wizard.prof.skills.from = { number: 2, options: ["acr", "his", "ins", "inv", "med", "rel"] };
     classes.push(wizard);
 
     console.log(classes);
@@ -237,16 +235,20 @@ const capitalize = (s) => {
 
 
 async function makeClassConfig(compendiumClasses, className) {
-    const clazz = await compendiumClasses.find(c => c.data.name == className);
-    const subClassOf = null;
-    const hitDie = 'd6'; // just a default.... just in case.
+    const item = await compendiumClasses.find(c => c.data.name == className);
+    const subclassOf = null;
+    const attributes = {
+        size: 'med', // .. sm / med / lg ...
+        hp: { bonus: 0 }, // HP per level
+        hitDie: 'd6' // just a default.... just in case.
+    }
     const prof = {
         // ["acr", "ani", "arc", "ath", "dec", "his", "ins", "itm", "inv", "med", "nat", "prc", "prf", "per", "rel", "slt", "ste", "sur"]
         skills: { fixed: [], any: 0, from: { number: 0, choices: [] } },
         // ["mar", "sim"]
         weapons: { fixed: [], any: 0, from: [] },
         // ["hvy", "lgt", "med", "shl"]
-        armors: { fixed: [], any: 0, from: [] },
+        armor: { fixed: [], any: 0, from: [] },
         // ["aarakocra", "abyssal", "aquan", "auran", "celestial", "common", "deep", "draconic", "druidic", "dwarvish", "elvish", "giant", "gith", "gnoll", "gnomish", "goblin", "halfling", "ignan", "infernal", "orc", "primordial", "sylvan", "terran", "cant", "undercommon"]
         languages: { fixed: [], any: 0, from: [] },
         // ["art", "disg", "forg", "game", "herb", "music", "navg", "pois", "thief", "vehicle"]
@@ -264,9 +266,9 @@ async function makeClassConfig(compendiumClasses, className) {
 
     return {
         name: className,
-        clazz: clazz,
-        subClassOf: subClassOf,
-        hitDie: hitDie,
+        item: item,
+        subclassOf: subclassOf,
+        attributes: attributes,
         prof: prof,
         equipment: equipment
     };
@@ -274,7 +276,7 @@ async function makeClassConfig(compendiumClasses, className) {
 
 
 async function makeRaceConfig(compendiumRaces, raceName) {
-    const race = await compendiumRaces.find(r => r.data.name == raceName);
+    const item = await compendiumRaces.find(r => r.data.name == raceName);
     const subraceOf = null; // race Object
     const abilities = {
         str: { bonus: 0 },
@@ -309,7 +311,7 @@ async function makeRaceConfig(compendiumRaces, raceName) {
         // ["mar", "sim"]
         weapons: { fixed: [], any: 0, from: [] },
         // ["hvy", "lgt", "med", "shl"]
-        armors: { fixed: [], any: 0, from: [] },
+        armor: { fixed: [], any: 0, from: [] },
         // ["aarakocra", "abyssal", "aquan", "auran", "celestial", "common", "deep", "draconic", "druidic", "dwarvish", "elvish", "giant", "gith", "gnoll", "gnomish", "goblin", "halfling", "ignan", "infernal", "orc", "primordial", "sylvan", "terran", "cant", "undercommon"]
         languages: { fixed: [], any: 0, from: [] },
         // ["art", "disg", "forg", "game", "herb", "music", "navg", "pois", "thief", "vehicle"]
@@ -329,7 +331,7 @@ async function makeRaceConfig(compendiumRaces, raceName) {
 
     return {
         name: raceName,
-        race: race,
+        item: item,
         subraceOf: subraceOf,
         abilities: abilities,
         attributes: attributes,
