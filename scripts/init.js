@@ -27,6 +27,7 @@
     dwarf.mov.walk = 25;
     dwarf.senses.darkvision = 60;
     dwarf.dmg.resistances.fixed = ['poison'];
+    dwarf.prof.languages.fixed = ['common', 'dwarvish'];
     dwarf.prof.weapons.from = ['battleaxe', 'handaxe', 'light hammer', 'warhammer'];
     // dwarf gets prof in any of three artisan tools, marking those as custom as artisan tools is too general
     dwarf.prof.tools.from = { number: 1, options: ["smith's tools", "brewer's supplies", "mason's tools"] };
@@ -157,7 +158,7 @@
     druid.prof.armor.fixed = ["lgt", "med", "shl", '(druids will not wear armor or use shields made of metal)'];
     druid.prof.weapons.fixed = ['clubs', 'daggers', 'darts', 'javelins', 'maces', 'quarterstaffs', 'scimitars', 'sickles', 'slings', 'spears'];
     druid.prof.skills.from = { number: 2, options: ["arc", "ani", "ins", "med", "nat", "prc", "rel", "sur"] };
-    druid.prof.tools.fixed = ['herbalism kit'];
+    druid.prof.tools.fixed = ['herb'];
     classes.push(druid);
 
     const fighter = await makeClassConfig(compClasses, 'Fighter');
@@ -292,7 +293,8 @@ async function makeRaceConfig(compendiumRaces, raceName) {
         hp: { bonus: 0 } // HP per level
     }
     const senses = {
-        darkvision: 0
+        darkvision: 0,
+        units: "ft",
     }
     const mov = {
         burrow: 0,

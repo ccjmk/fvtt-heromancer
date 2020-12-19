@@ -43,14 +43,17 @@
 
     actorData['details.race'] = heroRace.name;
     actorData['details.background'] = background;
-    actorData['details.alignment'] = heroAlignment;
+    actorData['details.alignment'] = await game.dnd5e.config.alignments[heroAlignment];
+    actorData['traits.size'] = `${heroRace.attributes.size}`
+    if(heroRace.senses.darkvision > 0) {
+        actorData['traits.senses'] = `Darkvision: ${heroRace.senses.darkvision}${heroRace.senses.units}`
+    }
 
     // damage interactions
     // actorData['traits.ci.value'] = ['blinded']; // condition immunity
     // actorData['traits.di.value'] = ['bludgeoning']; // damage immunity
     // actorData['traits.dr.value'] = ['piercing']; // damage resistance
     // actorData['traits.dv.value'] = ['slashing']; // damage vulnerability
-
 
     //  PROFICIENCIES
     //  -----------------------------------------------
@@ -68,7 +71,6 @@
     actorData['traits.weaponProf.custom'] = weaponProficiencies.custom.join(';');
 
     let toolProficiencies = await getToolProficiencies(heroRace, heroClass);
-    console.log(toolProficiencies);
     actorData['traits.toolProf.value'] = toolProficiencies.standard;
     actorData['traits.toolProf.custom'] = toolProficiencies.custom.join(';');
 
@@ -166,28 +168,30 @@ function getLanguageProficiencies(heroRace, heroClass) {
 async function getToolProficiencies(heroRace, heroClass) {
     const profKeys = Object.keys(game.dnd5e.config.toolProficiencies);
     let proficiencies = getProficiencies(heroRace, heroClass, 'tools', profKeys);
-    console.log("in tool profs");
-    console.log(proficiencies);
     if (heroRace.prof.tools.from.number > 0) { // then ask between reimaining race options
         const toolsToPick = heroRace.prof.tools.from.options.filter(s => !proficiencyInList(proficiencies, s));
         const selectedTools = await multi_input({ title: `Choose race tools (${heroRace.prof.tools.from.number})`, data: toolsToPick.map(s => `${game.dnd5e.config.skills[s] || s} ;checkbox`).map(s => s.split(';')) });
         selectedTools.forEach((e,i) => {
-            let p = toolsToPick[i];
-            if(profKeys.includes(p))
-                proficiencies.standard.concat(selectedTools);
-            else
-                proficiencies.custom.concat(selectedTools);
+            if(e) {
+                let p = toolsToPick[i];
+                if(profKeys.includes(p))
+                    proficiencies.standard = proficiencies.standard.concat(p);
+                else
+                    proficiencies.custom = proficiencies.custom.concat(capitalize(p));
+            }
         });
     }
     if (heroClass.prof.tools.from.number > 0) { // then between reimaining class options
         const toolsToPick = heroClass.prof.tools.from.options.filter(s => !proficiencyInList(proficiencies, s));
         const selectedTools = await multi_input({ title: `Choose class tools (${heroClass.prof.tools.from.number})`, data: toolsToPick.map(s => `${game.dnd5e.config.skills[s] || s} ;checkbox`).map(s => s.split(';')) });
         selectedTools.forEach((e,i) => {
-            let p = toolsToPick[i];
-            if(profKeys.includes(p))
-                proficiencies.standard.concat(selectedTools);
-            else
-                proficiencies.custom.concat(selectedTools);
+            if(e) {
+                let p = toolsToPick[i];
+                if(profKeys.includes(p))
+                    proficiencies.standard = proficiencies.standard.concat(p);
+                else
+                    proficiencies.custom = proficiencies.custom.concat(capitalize(p));
+            }
         });
     }
 
